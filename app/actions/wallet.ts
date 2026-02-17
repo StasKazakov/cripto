@@ -1,4 +1,5 @@
 'use server'
+import { cacheTag, cacheLife } from 'next/cache';
 import { ethers } from 'ethers'
 
 export async function getUsdcBalance() {
@@ -32,6 +33,9 @@ export async function getUsdcBalance() {
 }
 
 export async function getEthInUsd() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(process.env.NEXT_PUBLIC_WALLET_ADDRESS || 'wallet');
   const apiKey = process.env.ETHERSCAN_API_KEY;
   const walletAddress = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
   const rpcUrl = process.env.RPC_URL || "https://ethereum-rpc.publicnode.com";
@@ -67,12 +71,15 @@ export async function getEthInUsd() {
 }
 
 export async function getWalletHistoryByPeriod(seconds: number) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(`wallet-history-${seconds}-${process.env.NEXT_PUBLIC_WALLET_ADDRESS}`);
   const apiKey = process.env.ETHERSCAN_API_KEY;
   const address = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
   const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
 
   try {
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url);
     const data = await response.json();
 
     if (data.status === "1") {

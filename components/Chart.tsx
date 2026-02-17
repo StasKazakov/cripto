@@ -122,16 +122,44 @@ const Chart = () => {
         <Image src="/img/logo.svg" alt="logo" width={30} height={20} />
       </div>
 
-      <div className="mt-8 h-40 w-full">
+      <div className="mt-8 h-40 w-full flex items-center justify-center">
+      {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9ca3af' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-            <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} width={55} />
+            <XAxis 
+              dataKey="label" 
+              tick={{ fontSize: 11, fill: '#9ca3af' }} 
+              tickLine={false} 
+              axisLine={false} 
+              interval="preserveStartEnd" 
+            />
+            <YAxis 
+              tick={{ fontSize: 11, fill: '#9ca3af' }} 
+              tickLine={false} 
+              axisLine={false} 
+              tickFormatter={(v) => `$${v}`} 
+              width={55} 
+            />
             <Tooltip formatter={(v: any) => [`$${v}`, 'Balance']} />
-            <Area type="monotone" dataKey="balance" stroke="#FF5100" strokeWidth={2} fill="#FF5100" fillOpacity={0.1} dot={false} />
+            <Area 
+              type="monotone" 
+              dataKey="balance" 
+              stroke="#FF5100" 
+              strokeWidth={2} 
+              fill="#FF5100" 
+              fillOpacity={0.1} 
+              dot={false} 
+            />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-gray-400 font-medium italic text-sm">
+            No transaction data for this period
+          </p>
+        </div>
+      )}
+    </div>
     </div>
   )
 }

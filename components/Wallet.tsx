@@ -4,13 +4,11 @@ import { useState, useRef, useEffect } from "react"
 import { GoTriangleUp } from "react-icons/go";
 import NumberFlow from '@number-flow/react'
 import { getUsdcBalance, getEthInUsd, getWalletHistoryByPeriod } from '@/app/actions/wallet'
+import ModalDeposit from "@/components/ModalDeposit";
+import ModalWithdraw from "@/components/ModalWithdraw";
 
-interface WalletProps {
-  onOpenDeposit: () => void;
-  onOpenWithdraw: () => void;
-}
 
-const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
+const Wallet = () => {
   const [walletName, setWalletName] = useState("My Wallet")
   const [isEditing, setIsEditing] = useState(false)
   const [usdcBalance, setUsdcBalance] = useState<number>(0)
@@ -18,6 +16,8 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dayStats, setDayStats] = useState({ usd: 0, percent: "0.0", isPositive: true });
   const MY_ADDRESS = (process.env.NEXT_PUBLIC_WALLET_ADDRESS || "").toLowerCase();
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   
   useEffect(() => {
     if (isEditing) {
@@ -166,7 +166,6 @@ if (e.key === "Enter") {
                     {dayStats.isPositive ? '+' : '-'}${Math.abs(dayStats.usd).toFixed(2)}
                 </p>
 
-                {/* Процент и иконка */}
                 <div className="flex items-center">
                     <GoTriangleUp className={`${dayStats.isPositive ? 'text-[#3CAB68]' : 'text-red-500 rotate-180'}`} />
                     <p className={`text-lg font-medium ${dayStats.isPositive ? 'text-[#3CAB68]' : 'text-red-500'}`}>
@@ -174,7 +173,6 @@ if (e.key === "Enter") {
                     </p>
                 </div>
 
-                {/* Метка времени */}
                 <p className="text-lg font-medium text-gray-500">Today</p>
             </div>
 
@@ -183,18 +181,20 @@ if (e.key === "Enter") {
         <div className="flex gap-3">
             <button className="flex flex-1 bg-[#FF5100] text-white py-2 text-lg rounded-lg items-center justify-center 
             cursor-pointer hover:bg-black click"
-            onClick={onOpenDeposit}>
+            onClick={() => setIsDepositOpen(true)}>
                 
                 <Image src="/img/down.svg" alt="up" width={20} height={20}/>
                 <p className="pl-2">Deposit</p>
             </button>
             <button className="flex flex-1 bg-[#E1E1E1] text-black py-2 text-lg rounded-lg border border-gray-400 justify-center 
             cursor-pointer hover:bg-gray-500 click"
-            onClick={onOpenWithdraw}>
+            onClick={() => setIsWithdrawOpen(true)}>
 
                 <Image src="/img/up.svg" alt="down" width={20} height={20}/>
                 <p className="pl-2">Withdraw</p></button>
         </div>
+        {isDepositOpen && <ModalDeposit onClose={() => setIsDepositOpen(false)} />}
+        {isWithdrawOpen && <ModalWithdraw onClose={() => setIsWithdrawOpen(false)} />}
 
     </div>
   )
