@@ -3,7 +3,7 @@ import Image from "next/image"
 import { useState, useRef, useEffect } from "react"
 import { GoTriangleUp } from "react-icons/go";
 import NumberFlow from '@number-flow/react'
-import { getUsdcBalance, getEthInUsd } from '@/app/actions/wallet'
+import { getUsdcBalance, getEthInUsd, getWalletHistoryByPeriod } from '@/app/actions/wallet'
 
 interface WalletProps {
   onOpenDeposit: () => void;
@@ -16,6 +16,8 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
   const [usdcBalance, setUsdcBalance] = useState<number>(0)
   const [ethUsdBalance, setEthUsdBalance] = useState<number>(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [dayStats, setDayStats] = useState({ usd: 0, percent: "0.0", isPositive: true });
+  const MY_ADDRESS = (process.env.NEXT_PUBLIC_WALLET_ADDRESS || "").toLowerCase();
   
   useEffect(() => {
     if (isEditing) {
@@ -25,32 +27,58 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
 
   useEffect(() => {
   async function fetchAllBalances() {
-    const [usdcRes, ethRes] = await Promise.all([
+    
+    const [usdcRes, ethRes, historyDay] = await Promise.all([
       getUsdcBalance(),
-      getEthInUsd() 
-    ])
+      getEthInUsd(),
+      getWalletHistoryByPeriod(86400)
+    ]);
 
-    if (usdcRes && 'balance' in usdcRes) {
-      setUsdcBalance(parseFloat(usdcRes.balance))
-    }
+    let ethPrice = 0;
+    let currentEthUsd = 0;
 
     if (ethRes && 'usdValue' in ethRes) {
-      setEthUsdBalance(parseFloat(ethRes.usdValue))
+      currentEthUsd = parseFloat(ethRes.usdValue);
+      setEthUsdBalance(currentEthUsd);
+      
+      const balanceEth = parseFloat(ethRes.balance);
+      ethPrice = balanceEth > 0 ? currentEthUsd / balanceEth : 0;
+    }
+
+    if (usdcRes && 'balance' in usdcRes) {
+      setUsdcBalance(parseFloat(usdcRes.balance));
+    }
+
+    if (historyDay && historyDay.length > 0 && ethPrice > 0) {
+      const diffEth = historyDay.reduce((acc: number, tx: any) => {
+        const val = parseFloat(tx.value) / 1e18;
+        return tx.to.toLowerCase() === MY_ADDRESS ? acc + val : acc - val;
+      }, 0);
+
+      const diffUsd = diffEth * ethPrice;
+      const startBalance = currentEthUsd - diffUsd;
+      const percent = startBalance > 0 ? (diffUsd / startBalance) * 100 : 0;
+
+      setDayStats({
+        usd: diffUsd,
+        percent: Math.abs(percent).toFixed(1),
+        isPositive: diffUsd >= 0
+      });
     }
   }
   
-  fetchAllBalances()
-}, [])
+  fetchAllBalances();
+}, [MY_ADDRESS]);
 
-  const handleBlur = () => {
+const handleBlur = () => {
+setIsEditing(false)
+}
+
+const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+if (e.key === "Enter") {
     setIsEditing(false)
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      setIsEditing(false)
-    }
-  }
+}
+}
 
   return (
     <div className="h-full p-5 bg-white rounded-lg border border-gray-500">
@@ -131,14 +159,25 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
                     />
                     <span>USDC</span>
                 </div>
+
                 <div className="flex items-center gap-4">
-                    <p className="text-lg font-medium text-[#3CAB68]">+$23.43</p>
-                    <div className="flex items-center">
-                        <GoTriangleUp className="text-[#3CAB68]" />
-                        <p className="text-lg font-medium text-[#3CAB68]">5.2%</p>
-                    </div>
-                    <p className="text-lg font-medium text-gray-500">Today</p>
+   
+                <p className={`text-lg font-medium ${dayStats.isPositive ? 'text-[#3CAB68]' : 'text-red-500'}`}>
+                    {dayStats.isPositive ? '+' : '-'}${Math.abs(dayStats.usd).toFixed(2)}
+                </p>
+
+                {/* Процент и иконка */}
+                <div className="flex items-center">
+                    <GoTriangleUp className={`${dayStats.isPositive ? 'text-[#3CAB68]' : 'text-red-500 rotate-180'}`} />
+                    <p className={`text-lg font-medium ${dayStats.isPositive ? 'text-[#3CAB68]' : 'text-red-500'}`}>
+                        {dayStats.percent}%
+                    </p>
                 </div>
+
+                {/* Метка времени */}
+                <p className="text-lg font-medium text-gray-500">Today</p>
+            </div>
+
             </div>
         </div>
         <div className="flex gap-3">

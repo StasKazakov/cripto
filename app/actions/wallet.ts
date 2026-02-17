@@ -32,26 +32,34 @@ export async function getUsdcBalance() {
 }
 
 export async function getEthInUsd() {
-  const rpcUrl = process.env.RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+  const apiKey = process.env.ETHERSCAN_API_KEY;
   const walletAddress = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
+  const rpcUrl = process.env.RPC_URL || "https://ethereum-rpc.publicnode.com";
 
-  if (!walletAddress) return { balance: "0", usdValue: "0" };
+  if (!walletAddress || !apiKey) return { balance: "0", usdValue: "0" };
+
   try {
+    
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const rawBalance = await provider.getBalance(walletAddress);
     const ethBalance = ethers.formatEther(rawBalance);
-    const priceResponse = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
-    );
-    const priceData = await priceResponse.json();
-    const ethPrice = priceData.ethereum.usd;
 
-    const usdValue = parseFloat(ethBalance) * ethPrice;
 
-    return {
-      balance: ethBalance,            
-      usdValue: usdValue.toFixed(2)
-    };
+    const priceUrl = `https://api.etherscan.io/v2/api?chainid=1&module=stats&action=ethprice&apikey=${apiKey}`;
+    const response = await fetch(priceUrl, { next: { revalidate: 60 } }); // Кэшируем на минуту
+    const data = await response.json();
+
+    if (data.status === "1" && data.result.ethusd) {
+      const ethPrice = parseFloat(data.result.ethusd);
+      const usdValue = parseFloat(ethBalance) * ethPrice;
+
+      return {
+        balance: ethBalance,
+        usdValue: usdValue.toFixed(2)
+      };
+    }
+
+    throw new Error("Etherscan price error");
   } catch (e: any) {
     console.error("Error getting ETH balance or price:", e.message);
     return { balance: "0", usdValue: "0" };
