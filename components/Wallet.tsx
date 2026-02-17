@@ -1,6 +1,57 @@
+'use client'
 import Image from "next/image"
+import { useState, useRef, useEffect } from "react"
 import { GoTriangleUp } from "react-icons/go";
-const Wallet = () => {
+import NumberFlow from '@number-flow/react'
+import { getUsdcBalance, getEthInUsd } from '@/app/actions/wallet'
+
+interface WalletProps {
+  onOpenDeposit: () => void;
+  onOpenWithdraw: () => void;
+}
+
+const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
+  const [walletName, setWalletName] = useState("My Wallet")
+  const [isEditing, setIsEditing] = useState(false)
+  const [usdcBalance, setUsdcBalance] = useState<number>(0)
+  const [ethUsdBalance, setEthUsdBalance] = useState<number>(0)
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus()
+    }
+  }, [isEditing])
+
+  useEffect(() => {
+  async function fetchAllBalances() {
+    const [usdcRes, ethRes] = await Promise.all([
+      getUsdcBalance(),
+      getEthInUsd() 
+    ])
+
+    if (usdcRes && 'balance' in usdcRes) {
+      setUsdcBalance(parseFloat(usdcRes.balance))
+    }
+
+    if (ethRes && 'usdValue' in ethRes) {
+      setEthUsdBalance(parseFloat(ethRes.usdValue))
+    }
+  }
+  
+  fetchAllBalances()
+}, [])
+
+  const handleBlur = () => {
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setIsEditing(false)
+    }
+  }
+
   return (
     <div className="p-5 bg-white rounded-lg border border-gray-500">
         <div className="flex items-center gap-5 mb-6">
@@ -9,26 +60,63 @@ const Wallet = () => {
                 <Image src="/img/pencil.svg" alt="pencil" width={16} height={16} />
             </div>
                 <div>
-                    <div className="flex font-euclid">
-                        <div className=" font-medium text-xl pr-1">My Wallet</div>
-                        <Image src="/img/edit.svg" alt="pencil" width={14} height={14} />
-                    </div>
-                    <div className="font-medium text-lg text-gray-500">Joined Nov 2025</div>
+                    <div className="flex font-euclid w-60">
+                        {isEditing ? (
+                    <input
+                        ref={inputRef}
+                        value={walletName}
+                        maxLength={16}
+                        onChange={(e) => setWalletName(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        className="w-full font-medium text-xl pr-1 border-b border-gray-400 outline-none"
+                    />
+                    ) : (
+                    <>
+                        <div className="font-medium text-xl pr-1">
+                        {walletName}
+                        </div>
+                        <Image
+                        src="/img/edit.svg"
+                        alt="edit"
+                        width={14}
+                        height={14}
+                        className="cursor-pointer"
+                        onClick={() => setIsEditing(true)}
+                        />
+                    </>
+                    )}
+                </div>
                 </div>
 
                 <div className="flex justify-end ml-auto">
                     <div className="flex flex-col justify-center px-2">
-                        <p className="font-regular text-lg text-gray-500">Portfolio ( Not USDC )</p>
-                        <p className="font-medium text-xl mx-auto">$3,361.42</p>
-                    </div>
+                        <p className="font-regular text-lg text-gray-500 text-center">Portfolio ( Not USDC )</p>
+                        <div className="font-medium text-xl mx-auto flex items-center">
+                            <span>$</span>
+                            <NumberFlow 
+                            value={ethUsdBalance} 
+                            format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }} 
+                            />
+                        </div>
+                        </div>
 
-                    <div className="border border-gray-400 h-8"></div>
+                    <div className="w-px bg-gray-400 h-8"></div>
 
                     <div className="px-2">
                         <p className="font-regular text-lg text-gray-500">USDC + Portfolio</p>
                         <div className="flex justify-center">
                             <Image src="/img/money.svg" alt="arrow" width={20} height={16} />
-                            <p className="pl-2 font-medium text-xl">$0,01</p>
+                            <div className="pl-2 font-medium text-xl flex items-center">
+                            <span>$</span>
+                            <NumberFlow 
+                                value={ethUsdBalance + usdcBalance} 
+                                format={{ 
+                                minimumFractionDigits: 2, 
+                                maximumFractionDigits: 2 
+                                }} 
+                            />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -36,7 +124,13 @@ const Wallet = () => {
 
         <div>
             <div className="mb-6">
-                <p className="text-5xl">984,42 USDC</p>
+                <div className="text-5xl flex items-baseline gap-2">
+                    <NumberFlow 
+                        value={usdcBalance} 
+                        format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }} 
+                    />
+                    <span>USDC</span>
+                </div>
                 <div className="flex items-center gap-4">
                     <p className="text-lg font-medium text-[#3CAB68]">+$23.43</p>
                     <div className="flex items-center">
@@ -48,11 +142,17 @@ const Wallet = () => {
             </div>
         </div>
         <div className="flex gap-3">
-            <button className="flex bg-[#FF5100] text-white px-28 py-2 text-lg rounded-lg items-center">
+            <button className="flex flex-1 bg-[#FF5100] text-white py-2 text-lg rounded-lg items-center justify-center 
+            cursor-pointer hover:bg-black click"
+            onClick={onOpenDeposit}>
+                
                 <Image src="/img/down.svg" alt="up" width={20} height={20}/>
                 <p className="pl-2">Deposit</p>
             </button>
-            <button className="flex bg-[#E1E1E1] text-black px-28 py-2 text-lg rounded-lg border border-gray-400">
+            <button className="flex flex-1 bg-[#E1E1E1] text-black py-2 text-lg rounded-lg border border-gray-400 justify-center 
+            cursor-pointer hover:bg-gray-500 click"
+            onClick={onOpenWithdraw}>
+                
                 <Image src="/img/up.svg" alt="down" width={20} height={20}/>
                 <p className="pl-2">Withdraw</p></button>
         </div>
