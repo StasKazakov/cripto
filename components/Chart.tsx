@@ -1,47 +1,71 @@
 'use client'
-
-import { useEffect, useState } from 'react'
-import NumberFlow from '@number-flow/react'
-import { getEthInUsd } from '@/app/actions/wallet' 
+import Image from "next/image";
+import { GoTriangleUp } from "react-icons/go";
+import { useState, useEffect } from "react";
+import { getWalletHistoryByPeriod } from '../app/actions/wallet'
 
 const Chart = () => {
-  const [balance, setBalance] = useState<number>(0)
-
+  const rangeLabels: Record<string, string> = {
+    '1H': 'Hour',
+    '6H': '6 Hours',
+    '1D': 'Day',
+    '1W': 'Week',
+    '1M': 'Month',
+    'All': 'Total'
+  };
+  const timeRanges = ['1H', '6H', '1D', '1W', '1M', 'All'];
+  const [activeRange, setActiveRange] = useState('1H');
+  
   useEffect(() => {
-    async function loadData() {
-      const result = await getEthInUsd() 
-      
-      console.log("Клиент получил USDC:", result);
+    const loadData = async () => {
+      const history = await getWalletHistoryByPeriod(3600);
+      console.log(history);
+    };
 
-      if (result && 'balance' in result && typeof result.balance === 'string') {
-        setBalance(parseFloat(result.usdValue))
-      }
-    }
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   return (
-    <div className="p-10 bg-white rounded-lg border border-gray-500 text-black">
-      <div className="flex flex-col">
-        <span className="text-sm text-gray-500 uppercase font-medium">Total Balance</span>
-        <div className="flex items-baseline gap-1">
-          <NumberFlow 
-            value={balance} 
-            format={{ 
-              minimumFractionDigits: 2, 
-              maximumFractionDigits: 2 
-            }}
-            className="text-3xl font-bold"
-          />
-          <span className="font-medium text-lg text-blue-600">ETH</span>
+    <div className='h-full p-5 bg-white rounded-lg border border-gray-500'>
+      
+      <div className="flex justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <GoTriangleUp className="text-[#3CAB68] text-xl" />
+          <p className="text-md text-gray-500 font-medium">Profit/Loss</p>
+        </div>
+
+        <div className="flex gap-2">
+          {timeRanges.map((range) => (
+            <button
+              key={range}
+              onClick={() => setActiveRange(range)}
+              className={`px-3 py-1 text-sm font-medium rounded-full transition-all 
+                ${activeRange === range 
+                  ? "bg-[#FFF2EB] text-[#FF5100]" 
+                  : "text-gray-400 hover:text-gray-600" 
+                }`}
+            >
+              {range}
+            </button>
+          ))}
         </div>
       </div>
-      
-      <div className="mt-4 text-[10px] text-gray-400">
-        Network: Sepolia Testnet
+
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-4xl font-bold">+$223.43</p>
+          <p className="text-gray-500 text-lg mt-1">
+            {activeRange === 'All' ? 'Total Balance Change' : `Past ${rangeLabels[activeRange]}`}
+          </p>
+        </div>
+        <Image src="/img/logo.svg" alt="logo" width={30} height={20} />
+      </div>
+
+      <div className="mt-8 h-40 w-full bg-gray-50 rounded flex items-center justify-center border-dashed border-2 border-gray-200">
+        <p className="text-gray-400 text-sm">Chart will be rendered here</p>
       </div>
     </div>
   )
 }
 
-export default Chart
+export default Chart;

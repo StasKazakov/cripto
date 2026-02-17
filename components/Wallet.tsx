@@ -53,14 +53,14 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
   }
 
   return (
-    <div className="p-5 bg-white rounded-lg border border-gray-500">
-        <div className="flex items-center gap-5 mb-6">
+    <div className="h-full p-5 bg-white rounded-lg border border-gray-500">
+        <div className="flex items-center gap-2 mb-6">
             <div className="flex justify-center items-center 
             w-12 h-12 rounded-full bg-orange-500">
                 <Image src="/img/pencil.svg" alt="pencil" width={16} height={16} />
             </div>
                 <div>
-                    <div className="flex font-euclid w-60">
+                    <div className="flex font-euclid w-30">
                         {isEditing ? (
                     <input
                         ref={inputRef}
@@ -91,7 +91,7 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
 
                 <div className="flex justify-end ml-auto">
                     <div className="flex flex-col justify-center px-2">
-                        <p className="font-regular text-lg text-gray-500 text-center">Portfolio ( Not USDC )</p>
+                        <p className="font-regular text-md text-gray-500 text-center">Portfolio ( Not USDC )</p>
                         <div className="font-medium text-xl mx-auto flex items-center">
                             <span>$</span>
                             <NumberFlow 
@@ -103,8 +103,8 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
 
                     <div className="w-px bg-gray-400 h-8"></div>
 
-                    <div className="px-2">
-                        <p className="font-regular text-lg text-gray-500">USDC + Portfolio</p>
+                    <div className="flex flex-col px-2 justify-center">
+                        <p className="font-regular text-md text-gray-500 text-center">USDC + Portfolio</p>
                         <div className="flex justify-center">
                             <Image src="/img/money.svg" alt="arrow" width={20} height={16} />
                             <div className="pl-2 font-medium text-xl flex items-center">
@@ -152,7 +152,7 @@ const Wallet = ({ onOpenDeposit, onOpenWithdraw }: WalletProps) => {
             <button className="flex flex-1 bg-[#E1E1E1] text-black py-2 text-lg rounded-lg border border-gray-400 justify-center 
             cursor-pointer hover:bg-gray-500 click"
             onClick={onOpenWithdraw}>
-                
+
                 <Image src="/img/up.svg" alt="down" width={20} height={20}/>
                 <p className="pl-2">Withdraw</p></button>
         </div>

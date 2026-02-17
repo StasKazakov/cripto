@@ -57,3 +57,26 @@ export async function getEthInUsd() {
     return { balance: "0", usdValue: "0" };
   }
 }
+
+export async function getWalletHistoryByPeriod(seconds: number) {
+  const apiKey = process.env.ETHERSCAN_API_KEY;
+  const address = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
+  const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
+
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    const data = await response.json();
+
+    if (data.status === "1") {
+      const now = Math.floor(Date.now() / 1000); 
+      const startTime = now - seconds; 
+
+      return data.result.filter((tx: any) => parseInt(tx.timeStamp) >= startTime);
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Error fetching filtered history:", error);
+    return [];
+  }
+}

@@ -32,7 +32,7 @@ const handleCopy = async () => {
         <h2 className="flex justify-center items-center text-2xl font-bold mb-4 text-black">Deposit USDC</h2>
         <div className="flex flex-col justify-center items-center text-center gap-2">
             <p className="text-gray-500">
-                To replenish your account, transfer your USDC (Sepolia) to the following address:
+                To replenish your account, transfer your USDC to the following address:
             </p>
             <p 
                 onClick={handleCopy} 
