@@ -6,6 +6,7 @@ import NumberFlow from '@number-flow/react'
 import { getUsdcBalance, getEthInUsd, getWalletHistoryByPeriod } from '@/app/actions/wallet'
 import ModalDeposit from "@/components/ModalDeposit";
 import ModalWithdraw from "@/components/ModalWithdraw";
+import { Transaction } from "@/data";
 
 
 const Wallet = () => {
@@ -50,7 +51,7 @@ const Wallet = () => {
     }
 
     if (historyDay && historyDay.length > 0 && ethPrice > 0) {
-      const diffEth = historyDay.reduce((acc: number, tx: any) => {
+      const diffEth = historyDay.reduce((acc: number, tx: Transaction) => {
         const val = parseFloat(tx.value) / 1e18;
         return tx.to.toLowerCase() === MY_ADDRESS ? acc + val : acc - val;
       }, 0);
@@ -88,7 +89,7 @@ if (e.key === "Enter") {
                 <Image src="/img/pencil.svg" alt="pencil" width={16} height={16} />
             </div>
                 <div>
-                    <div className="flex font-euclid w-30">
+                    <div className="flex font-euclid w-28">
                         {isEditing ? (
                     <input
                         ref={inputRef}

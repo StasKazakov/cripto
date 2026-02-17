@@ -1,6 +1,7 @@
 'use server'
 import { cacheTag, cacheLife } from 'next/cache';
 import { ethers } from 'ethers'
+import { Transaction } from '@/data';
 
 export async function getUsdcBalance() {
   const rpcUrl = process.env.RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
@@ -26,8 +27,9 @@ export async function getUsdcBalance() {
     const formatted = ethers.formatUnits(rawBalance, 6);
     
     return { balance: formatted };
-  } catch (e: any) {
-    console.error("Error getting USDC:", e.message);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    console.error("Error getting USDC:", message);
     return { balance: "0" };
   }
 }
@@ -64,9 +66,10 @@ export async function getEthInUsd() {
     }
 
     throw new Error("Etherscan price error");
-  } catch (e: any) {
-    console.error("Error getting ETH balance or price:", e.message);
-    return { balance: "0", usdValue: "0" };
+  } catch (e: unknown) {
+  const message = e instanceof Error ? e.message : 'Unknown error';
+  console.error("Error getting ETH balance or price:", message);
+  return { balance: "0", usdValue: "0" };
   }
 }
 
@@ -86,7 +89,7 @@ export async function getWalletHistoryByPeriod(seconds: number) {
       const now = Math.floor(Date.now() / 1000); 
       const startTime = now - seconds; 
 
-      return data.result.filter((tx: any) => parseInt(tx.timeStamp) >= startTime);
+      return data.result.filter((tx: Transaction) => parseInt(tx.timeStamp) >= startTime);
     }
     
     return [];
