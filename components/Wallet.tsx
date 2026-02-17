@@ -3,22 +3,54 @@ import Image from "next/image"
 import { useState, useRef, useEffect } from "react"
 import { GoTriangleUp } from "react-icons/go";
 import NumberFlow from '@number-flow/react'
-import { getUsdcBalance, getEthInUsd, getWalletHistoryByPeriod } from '@/app/actions/wallet'
 import ModalDeposit from "@/components/ModalDeposit";
 import ModalWithdraw from "@/components/ModalWithdraw";
 import { Transaction } from "@/data";
 
+interface WalletProps {
+  initialUsdcData: { balance: string };
+  initialEthData: { balance: string; usdValue: string };
+  initialHistory: Transaction[];
+}
 
-const Wallet = () => {
+
+const Wallet = ({ initialUsdcData, initialEthData, initialHistory }: WalletProps) => {
   const [walletName, setWalletName] = useState("My Wallet")
   const [isEditing, setIsEditing] = useState(false)
-  const [usdcBalance, setUsdcBalance] = useState<number>(0)
-  const [ethUsdBalance, setEthUsdBalance] = useState<number>(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [dayStats, setDayStats] = useState({ usd: 0, percent: "0.0", isPositive: true });
   const MY_ADDRESS = (process.env.NEXT_PUBLIC_WALLET_ADDRESS || "").toLowerCase();
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const currentEthUsd = parseFloat(initialEthData.usdValue);
+  const balanceEth = parseFloat(initialEthData.balance);
+  const ethPrice = balanceEth > 0 ? currentEthUsd / balanceEth : 0;
+
+  const [usdcBalance, setUsdcBalance] = useState<number>(0);
+  const [ethUsdBalance, setEthUsdBalance] = useState<number>(0);
+
+  const [dayStats, setDayStats] = useState({ usd: 0, percent: "0.0", isPositive: true });
+
+ useEffect(() => {
+  setUsdcBalance(parseFloat(initialUsdcData.balance));
+  setEthUsdBalance(currentEthUsd);
+
+  if (!initialHistory || initialHistory.length === 0) return;
+
+  const diffEth = initialHistory.reduce((acc: number, tx: Transaction) => {
+    const val = parseFloat(tx.value) / 1e18;
+    return tx.to.toLowerCase() === MY_ADDRESS ? acc + val : acc - val;
+  }, 0);
+
+  const diffUsd = diffEth * ethPrice;
+  const startBalance = currentEthUsd - diffUsd;
+  const percent = startBalance > 0 ? (diffUsd / startBalance) * 100 : 0;
+
+  setDayStats({
+    usd: diffUsd,
+    percent: Math.abs(percent).toFixed(1),
+    isPositive: diffUsd >= 0
+  });
+}, []);
   
   useEffect(() => {
     if (isEditing) {
@@ -26,50 +58,6 @@ const Wallet = () => {
     }
   }, [isEditing])
 
-  useEffect(() => {
-  async function fetchAllBalances() {
-    
-    const [usdcRes, ethRes, historyDay] = await Promise.all([
-      getUsdcBalance(),
-      getEthInUsd(),
-      getWalletHistoryByPeriod(86400)
-    ]);
-
-    let ethPrice = 0;
-    let currentEthUsd = 0;
-
-    if (ethRes && 'usdValue' in ethRes) {
-      currentEthUsd = parseFloat(ethRes.usdValue);
-      setEthUsdBalance(currentEthUsd);
-      
-      const balanceEth = parseFloat(ethRes.balance);
-      ethPrice = balanceEth > 0 ? currentEthUsd / balanceEth : 0;
-    }
-
-    if (usdcRes && 'balance' in usdcRes) {
-      setUsdcBalance(parseFloat(usdcRes.balance));
-    }
-
-    if (historyDay && historyDay.length > 0 && ethPrice > 0) {
-      const diffEth = historyDay.reduce((acc: number, tx: Transaction) => {
-        const val = parseFloat(tx.value) / 1e18;
-        return tx.to.toLowerCase() === MY_ADDRESS ? acc + val : acc - val;
-      }, 0);
-
-      const diffUsd = diffEth * ethPrice;
-      const startBalance = currentEthUsd - diffUsd;
-      const percent = startBalance > 0 ? (diffUsd / startBalance) * 100 : 0;
-
-      setDayStats({
-        usd: diffUsd,
-        percent: Math.abs(percent).toFixed(1),
-        isPositive: diffUsd >= 0
-      });
-    }
-  }
-  
-  fetchAllBalances();
-}, [MY_ADDRESS]);
 
 const handleBlur = () => {
 setIsEditing(false)

@@ -2,16 +2,15 @@
 import Image from "next/image";
 import { GoTriangleUp } from "react-icons/go";
 import { useState, useEffect } from "react";
-import { getWalletHistoryByPeriod } from '../app/actions/wallet';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { secondsMap, rangeLabels, Transaction } from "@/data";
+import { rangeLabels, Transaction } from "@/data";
 
 interface ChartClientProps {
-  initialHistory: Transaction[];
+  allHistory: Record<string, Transaction[]>;
   initialPriceData: { balance: string; usdValue: string };
 }
 
-const ChartClient = ({ initialHistory, initialPriceData }: ChartClientProps) => {
+const ChartClient = ({ allHistory, initialPriceData }: ChartClientProps) => {
   const [displayProfit, setDisplayProfit] = useState("0.00");
   const [isPositive, setIsPositive] = useState(true);
   const [chartData, setChartData] = useState<{label: string, balance: number}[]>([]);
@@ -63,20 +62,7 @@ const ChartClient = ({ initialHistory, initialPriceData }: ChartClientProps) => 
   };
 
   useEffect(() => {
-    if (activeRange === '1H') {
-      processData(initialHistory, initialPriceData);
-      return;
-    }
-    const loadHistory = async () => {
-      try {
-        const history = await getWalletHistoryByPeriod(secondsMap[activeRange]);
-        processData(history, initialPriceData);
-      } catch (error) {
-        console.error("Calculation error:", error);
-        setDisplayProfit("0.00");
-      }
-    };
-    loadHistory();
+    processData(allHistory[activeRange], initialPriceData);
   }, [activeRange]);
   
 
