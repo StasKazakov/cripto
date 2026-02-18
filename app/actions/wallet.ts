@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 import { Transaction } from '@/data';
 
 export async function getUsdcBalance() {
-  const rpcUrl = process.env.RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+  const rpcUrl = process.env.RPC_URL || "https://ethereum-rpc.publicnode.com";
   const walletAddress = process.env.NEXT_PUBLIC_WALLET_ADDRESS
   const usdcAddress = process.env.USDC_ADDRESS;
 
