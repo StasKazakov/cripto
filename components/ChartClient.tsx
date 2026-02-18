@@ -73,6 +73,7 @@ const ChartClient = ({ allHistory, initialPriceData }: ChartClientProps) => {
         <div className="flex items-center gap-2">
           <GoTriangleUp className="text-[#3CAB68] text-xl" />
           <p className="text-md text-gray-500 font-medium">Profit/Loss</p>
+          <Image src="/cripto/img/up2.svg" alt="up2" width={16} height={16} />
         </div>
 
         <div className="flex gap-2">
@@ -101,7 +102,7 @@ const ChartClient = ({ allHistory, initialPriceData }: ChartClientProps) => {
             {activeRange === 'All' ? 'Total Balance Change' : `Past ${rangeLabels[activeRange]}`}
           </p>
         </div>
-        <Image src="/img/logo.svg" alt="logo" width={30} height={20} />
+        <Image src="/cripto/img/logo.svg" alt="logo" width={30} height={20} />
       </div>
 
       <div className="mt-8 h-40 w-full flex items-center justify-center">

@@ -73,10 +73,13 @@ export async function getEthInUsd() {
   }
 }
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function getWalletHistoryByPeriod(seconds: number) {
   "use cache";
   cacheLife("minutes");
   cacheTag(`wallet-history-${seconds}-${process.env.NEXT_PUBLIC_WALLET_ADDRESS}`);
+  await delay(200);
   const apiKey = process.env.ETHERSCAN_API_KEY;
   const address = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
   const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;

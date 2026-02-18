@@ -74,7 +74,7 @@ if (e.key === "Enter") {
         <div className="flex items-center gap-2 mb-6">
             <div className="flex justify-center items-center 
             w-12 h-12 rounded-full bg-orange-500">
-                <Image src="/img/pencil.svg" alt="pencil" width={16} height={16} />
+                <Image src="/cripto/img/pencil.svg" alt="pencil" width={16} height={16} />
             </div>
                 <div>
                     <div className="flex font-euclid w-28">
@@ -94,7 +94,7 @@ if (e.key === "Enter") {
                         {walletName}
                         </div>
                         <Image
-                        src="/img/edit.svg"
+                        src="/cripto/img/edit.svg"
                         alt="edit"
                         width={14}
                         height={14}
@@ -123,7 +123,7 @@ if (e.key === "Enter") {
                     <div className="flex flex-col px-2 justify-center">
                         <p className="font-regular text-md text-gray-500 text-center">USDC + Portfolio</p>
                         <div className="flex justify-center">
-                            <Image src="/img/money.svg" alt="arrow" width={20} height={16} />
+                            <Image src="/cripto/img/money.svg" alt="arrow" width={20} height={16} />
                             <div className="pl-2 font-medium text-xl flex items-center">
                             <span>$</span>
                             <NumberFlow 
@@ -172,14 +172,14 @@ if (e.key === "Enter") {
             cursor-pointer hover:bg-black click"
             onClick={() => setIsDepositOpen(true)}>
                 
-                <Image src="/img/down.svg" alt="up" width={20} height={20}/>
+                <Image src="/cripto/img/down.svg" alt="up" width={20} height={20}/>
                 <p className="pl-2">Deposit</p>
             </button>
             <button className="flex flex-1 bg-[#E1E1E1] text-black py-2 text-lg rounded-lg border border-gray-400 justify-center 
             cursor-pointer hover:bg-gray-500 click"
             onClick={() => setIsWithdrawOpen(true)}>
 
-                <Image src="/img/up.svg" alt="down" width={20} height={20}/>
+                <Image src="/cripto/img/up.svg" alt="down" width={20} height={20}/>
                 <p className="pl-2">Withdraw</p></button>
         </div>
         {isDepositOpen && <ModalDeposit onClose={() => setIsDepositOpen(false)} />}
