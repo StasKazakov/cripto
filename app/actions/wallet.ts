@@ -38,6 +38,7 @@ export async function getEthInUsd() {
   "use cache";
   cacheLife("minutes");
   cacheTag(process.env.NEXT_PUBLIC_WALLET_ADDRESS || 'wallet');
+  
   const apiKey = process.env.ETHERSCAN_API_KEY;
   const walletAddress = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
   const rpcUrl = process.env.RPC_URL || "https://ethereum-rpc.publicnode.com";
@@ -45,31 +46,33 @@ export async function getEthInUsd() {
   if (!walletAddress || !apiKey) return { balance: "0", usdValue: "0" };
 
   try {
-    
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const rawBalance = await provider.getBalance(walletAddress);
     const ethBalance = ethers.formatEther(rawBalance);
 
-
     const priceUrl = `https://api.etherscan.io/v2/api?chainid=1&module=stats&action=ethprice&apikey=${apiKey}`;
-    const response = await fetch(priceUrl, { next: { revalidate: 60 } }); // Кэшируем на минуту
+    const response = await fetch(priceUrl);
     const data = await response.json();
 
     if (data.status === "1" && data.result.ethusd) {
       const ethPrice = parseFloat(data.result.ethusd);
       const usdValue = parseFloat(ethBalance) * ethPrice;
-
-      return {
-        balance: ethBalance,
-        usdValue: usdValue.toFixed(2)
-      };
+      return { balance: ethBalance, usdValue: usdValue.toFixed(2) };
     }
 
-    throw new Error("Etherscan price error");
+    const fallback = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT");
+    const fallbackData = await fallback.json();
+    if (fallbackData?.price) {
+      const ethPrice = parseFloat(fallbackData.price);
+      const usdValue = parseFloat(ethBalance) * ethPrice;
+      return { balance: ethBalance, usdValue: usdValue.toFixed(2) };
+    }
+
+    throw new Error("All price sources failed");
   } catch (e: unknown) {
-  const message = e instanceof Error ? e.message : 'Unknown error';
-  console.error("Error getting ETH balance or price:", message);
-  return { balance: "0", usdValue: "0" };
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    console.error("Error getting ETH balance or price:", message);
+    return { balance: "0", usdValue: "0" };
   }
 }
 
