@@ -76,13 +76,11 @@ export async function getEthInUsd() {
   }
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-export async function getWalletHistoryByPeriod(seconds: number) {
+export async function getAllWalletHistory() {
   "use cache";
   cacheLife("minutes");
-  cacheTag(`wallet-history-${seconds}-${process.env.NEXT_PUBLIC_WALLET_ADDRESS}`);
-  await delay(200);
+  cacheTag(`wallet-history-${process.env.NEXT_PUBLIC_WALLET_ADDRESS}`);
+
   const apiKey = process.env.ETHERSCAN_API_KEY;
   const address = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
   const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
@@ -90,17 +88,11 @@ export async function getWalletHistoryByPeriod(seconds: number) {
   try {
     const response = await fetch(url);
     const data = await response.json();
-
-    if (data.status === "1") {
-      const now = Math.floor(Date.now() / 1000); 
-      const startTime = now - seconds; 
-
-      return data.result.filter((tx: Transaction) => parseInt(tx.timeStamp) >= startTime);
-    }
-    
+    if (data.status === "1") return data.result as Transaction[];
     return [];
   } catch (error) {
-    console.error("Error fetching filtered history:", error);
+    console.error("Error fetching history:", error);
     return [];
   }
 }
+

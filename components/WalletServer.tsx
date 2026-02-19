@@ -1,12 +1,17 @@
-import { getUsdcBalance, getEthInUsd, getWalletHistoryByPeriod } from '@/app/actions/wallet';
+import { getUsdcBalance, getEthInUsd, getAllWalletHistory } from '@/app/actions/wallet';
 import Wallet from './Wallet';
+import { connection } from 'next/server';
 
 export default async function WalletServer() {
-  const [usdcRes, ethRes, historyDay] = await Promise.all([
+  await connection();
+  const [usdcRes, ethRes, allHistory] = await Promise.all([
     getUsdcBalance(),
     getEthInUsd(),
-    getWalletHistoryByPeriod(86400)
+    getAllWalletHistory()
   ]);
+
+  const now = Math.floor(Date.now() / 1000);
+  const historyDay = allHistory.filter(tx => parseInt(tx.timeStamp) >= now - 86400);
 
   return (
     <Wallet
